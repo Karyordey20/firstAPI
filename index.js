@@ -35,6 +35,6 @@ const users = [{
 app.get("/users", (request, response) => {
     response.json(users)
 })
-// app.post("/users", (request,response)=>{
+// app.post("/login", (request,response)=>{
 //      const {email,password} = request.body
 // })
