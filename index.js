@@ -1,40 +1,53 @@
-const express = require('express')
+const express = require('express')//server variable
+const dotEnv = require("dotenv")//process env variable
+const mongoose = require('mongoose')
+const app = express()//backend app variable
 
-const app = express()
+dotEnv.config()
+app.use(express.json())
+const studentInfo = require("./schema")
 
-const PORT = process.env.PORT || 5052
+mongoose.connect(`${process.env.MONGOOSE_URL }`)
+.then(() => console.log('mongoose connected...'))
 
+// const studentInfo = require("./schema")
+
+app.use(express.json())
+
+const PORT = process.env.PORT || 5000
 app.listen(PORT, () => {
-    console.log(
-        'server is running...' + PORT
-    )
+    console.log('sever connected...' + PORT)
 })
 
-app.get("/", (request, response)=>{
-    response.send('welcome to user backend')
+app.post("/students", async (req, res) => {
+    const {firstName,lastName,email, age,phoneNumber} = req.body
+
+    if(!email){
+       return res.status(400).json({message: "email require"})
+    }
+    const alreadyExisted = await studentInfo.findOne({email})
+    if(alreadyExisted){
+        return res.status(400).json({message:'user already existed'})
+    }
+    const newStudent  = new studentInfo({firstName,lastName,email, age,phoneNumber})
+
+    await newStudent.save()
+
+     res.status(200).json({
+        message:'successful',
+        user: newStudent
+    })
+
 })
-const users = [{
-    "id":"5eb20008/1010",
-    "FirstName":"Josh",
-    "LastName":"Peter",
-    "email":"joshpet@gmail.com"
-},
-{
-    "id":"5eb20008/1210",
-    "FirstName":"Seun",
-    "LastName":"Kola",
-    "email":"mygold@gmail.com"
-},
-{
-    "id":"5eb20008/2300",
-    "FirstName":"Bola",
-    "LastName":"Temitope",
-    "email":"nextjoy@gmail.com"
-},
-]
-app.get("/users", (request, response) => {
-    response.json(users)
+
+app.get("/students", async (req,res)=>{
+    const findAll = await studentInfo.find()
+
+    return res.status(200).json({
+        message:"sucessful",
+        count:findAll.length,
+        user: findAll,
+    })
 })
-// app.post("/login", (request,response)=>{
-//      const {email,password} = request.body
-// })
+
+
